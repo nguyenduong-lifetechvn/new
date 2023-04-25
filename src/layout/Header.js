@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  MDBDropdown,
+  MDBDropdownMenu,
+  MDBDropdownItem,
   MDBContainer,
   MDBNavbar,
   MDBNavbarBrand,
@@ -11,19 +14,27 @@ import {
   MDBNavbarLink,
   MDBBtn,
   MDBCollapse,
+  MDBDropdownToggle,
 } from "mdb-react-ui-kit";
-import { auth, db } from "../firebase/firebaseConfig";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc, getDocs, collection } from "firebase/firestore";
+import { db, auth } from "../firebase/firebaseConfig";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useCookies } from "react-cookie";
+import DropList from "../components/DropList";
+
 export default function Header() {
   const [showBasic, setShowBasic] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [status, setStatus] = useState(true);
   const navigate = useNavigate();
+  const [cookies, setCookie, removeCookie] = useCookies(["uid-current"]);
+
+  const [q, setQ] = useState();
   let userInfor = (
     <>
       <MDBNavbarItem>
         <MDBNavbarLink>
-          <Link className="nav-link" to={"/login"}>
+          <Link style={{ color: "white" }} className="nav-link" to={"/login"}>
             Sign In
           </Link>
         </MDBNavbarLink>
@@ -31,68 +42,137 @@ export default function Header() {
 
       <MDBNavbarItem>
         <MDBNavbarLink>
-          <Link className="nav-link" to={"/register"}>
+          <Link
+            style={{ color: "white" }}
+            className="nav-link"
+            to={"/register"}
+          >
             Sign Up
           </Link>
         </MDBNavbarLink>
       </MDBNavbarItem>
     </>
   );
+  const getUserByUidFromCookie = async () => {
+    const userRef = doc(db, "users", cookies.uid);
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      console.log("Document data:", docSnap.data());
+      setCurrentUser(docSnap.data());
+    } else {
+      console.log("No such document!");
+    }
+  };
   const CheckStateUser = () => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log(user);
         setCurrentUser(user);
       } else {
+        setCurrentUser(null);
       }
     });
   };
   const SignOut = async () => {
+    if (cookies !== null) {
+      removeCookie("uid");
+      setStatus(false);
+      navigate("/login");
+    }
     await signOut(auth)
       .then(() => {
         setStatus(false);
-        // Sign-out successful.
+
         navigate("/login");
       })
       .catch((error) => {
         alert(error);
       });
   };
+
+  const SearchUser = async (e) => {
+    e.preventDefault();
+    const users = [];
+    const useRef = collection(db, "users");
+    const docSnap = await getDocs(useRef);
+    docSnap.forEach((user) => {
+      users.push(user.data());
+    });
+
+    console.log(users);
+  };
   useEffect(() => {
     CheckStateUser();
-  }, [currentUser]);
+    getUserByUidFromCookie();
+  }, [cookies, status]);
 
   if (currentUser !== null)
     userInfor = (
       <>
         <MDBNavbarItem>
-          <MDBNavbarLink active aria-current="page">
-            {" "}
-            <Link className="nav-link text-danger" to="/user">
-              {/* <img
-                src={currentUser.photoUrl}
-                width="20"
-                className="rounded-circle"
-              /> */}
-              Chào {currentUser.displayName}
+          <MDBNavbarLink>
+            <Link style={{ color: "white" }} className="nav-link" to={"/post"}>
+              Create Your Post
             </Link>
           </MDBNavbarLink>
         </MDBNavbarItem>
-        <MDBBtn className="me-0" color="secondary" onClick={SignOut}>
-          Sign Out
-        </MDBBtn>
+
+        <MDBNavbarItem>
+          <MDBDropdown>
+            <MDBNavbarLink className="d-flex align-items-center">
+              <MDBDropdownToggle
+                style={{ color: "white", marginTop: "1px" }}
+                className="hidden-arrow "
+                rounded
+                color="#778899"
+              >
+                Chào {currentUser.displayName}
+              </MDBDropdownToggle>
+            </MDBNavbarLink>
+            <MDBDropdownMenu>
+              <MDBDropdownItem link>
+                <Link
+                  style={{ color: "black" }}
+                  className="text-decoration-none"
+                  to={"/user"}
+                >
+                  MyProfile
+                </Link>
+              </MDBDropdownItem>
+              <MDBDropdownItem link>Settings</MDBDropdownItem>
+              <MDBDropdownItem link onClick={SignOut}>
+                Logout
+              </MDBDropdownItem>
+            </MDBDropdownMenu>
+          </MDBDropdown>
+        </MDBNavbarItem>
       </>
     );
+
+  let dropList = (
+    <>
+      <MDBDropdown>
+        <MDBDropdownMenu alwaysOpen>
+          <MDBDropdownItem link>Regular link</MDBDropdownItem>
+          <MDBDropdownItem link aria-current={true} className="active">
+            Active link
+          </MDBDropdownItem>
+          <MDBDropdownItem link>Another link</MDBDropdownItem>
+        </MDBDropdownMenu>
+      </MDBDropdown>
+    </>
+  );
+
   return (
     <MDBNavbar
-      className="m-3 rounded border border-info"
+      className="m-3 rounded border border-secondary"
       expand="lg"
       light
-      style={{ backgroundColor: "#e3f2fd" }}
+      style={{ backgroundColor: "#778899", color: "white" }}
     >
       <MDBContainer fluid>
         <MDBNavbarBrand>
-          <Link className="" to={"/"}>
+          <Link style={{ color: "white" }} className="" to={"/"}>
             MY APP
           </Link>
         </MDBNavbarBrand>
@@ -110,28 +190,36 @@ export default function Header() {
           <MDBNavbarNav className="mr-auto mb-2 mb-lg-0">
             <MDBNavbarItem>
               <MDBNavbarLink active aria-current="page">
-                <Link className="nav-link" to={"/"}>
+                <Link style={{ color: "white" }} className="nav-link" to={"/"}>
                   Home
                 </Link>
               </MDBNavbarLink>
             </MDBNavbarItem>
-            <MDBNavbarItem>
-              <MDBNavbarLink>
-                <Link className="nav-link" to={"/post"}>
-                  Create Your Post
-                </Link>
-              </MDBNavbarLink>
-            </MDBNavbarItem>
+
             {userInfor}
+            <DropList />
           </MDBNavbarNav>
-          <form className="d-flex input-group w-50">
+
+          <form style={{ width: "500px" }} className="d-flex input-group ">
             <input
+              style={{ color: "black", borderRadius: "5px" }}
               type="search"
               className="form-control"
               placeholder="Type content that you find ..."
               aria-label="Search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
             />
-            <MDBBtn color="danger">Search</MDBBtn>
+            <br />
+            <MDBBtn
+              style={{ color: "white", borderRadius: "10px" }}
+              className="mx-2"
+              color="tertiary"
+              rippleColor="light"
+              onClick={SearchUser}
+            >
+              Search
+            </MDBBtn>
           </form>
         </MDBCollapse>
       </MDBContainer>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SHA256 } from "crypto-js";
 import {
   MDBContainer,
   MDBCol,
@@ -21,6 +22,7 @@ function SignUp() {
     username: "",
     password: "",
     confirmpassword: "",
+    dob: "",
   });
   const [data, setData] = useState({});
 
@@ -29,15 +31,17 @@ function SignUp() {
       toast.warning("Username and Password can't empty");
     else if (data.password !== data.confirmpassword)
       toast.error("Password and Confirm incorrect");
-    else {
+    else if (data.dob === "") {
+      toast.error("Day of birth can't empty");
+    } else {
       console.log(data);
       addDoc(collection(db, "users"), {
         name: data.fullname,
         email: data.email,
         username: data.username,
-        password: data.password,
+        password: SHA256(data.password).toString(),
         dob: data.dob,
-        createdDate: serverTimestamp(),
+        createdDate: new Date(),
         updatedDate: serverTimestamp(),
       })
         .then(async (res) => {
@@ -58,7 +62,7 @@ function SignUp() {
   };
 
   const SignUpWithAuthEmail = () => {
-    if (data.username === "" || data.password === "")
+    if (data.email === "" || data.password === "")
       toast.warning("Username and Password can't empty");
     else if (data.password !== data.confirmpassword)
       toast.error("Password and Confirm incorrect");
@@ -66,6 +70,7 @@ function SignUp() {
       createUserWithEmailAndPassword(auth, data.email, data.password)
         .then((userCredential) => {
           const user = userCredential.user;
+          console.log(user);
           toast.success("Create Successfull");
           navigate("/login");
         })

@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../firebase/firebaseConfig";
+import Moment from "react-moment";
 import {
   getDocs,
   collection,
   query,
   collectionGroup,
+  onSnapshot,
+  orderBy,
 } from "firebase/firestore";
 import {
+  MDBContainer,
+  MDBRow,
+  MDBCol,
+  MDBBtn,
   MDBCard,
   MDBCardHeader,
   MDBCardBody,
   MDBCardTitle,
-  MDBBtn,
   MDBCardFooter,
   MDBCardText,
   MDBSpinner,
@@ -21,53 +27,65 @@ export default function Home() {
   const [load, setLoad] = useState(false);
 
   let spinner = (
-    <MDBSpinner role="status">
-      <span className="visually-hidden">Loading...</span>
-    </MDBSpinner>
+    <MDBContainer>
+      <MDBSpinner role="status">
+        <span className="visually-hidden">Loading...</span>
+      </MDBSpinner>
+    </MDBContainer>
   );
 
   const postsRefAll = collection(db, "posts");
-  const getNewPost = async () => {
+
+  const getAllPostBycollectionGroup = async () => {
     setLoad(true);
-    const data = [];
-    const newpost = query(collectionGroup(db, "userPosts"));
-    getDocs(newpost)
-      .then((querySnapshot) => {
+    const newpost = collectionGroup(db, "userPosts");
+
+    onSnapshot(
+      query(newpost, orderBy("createdDate", "desc")),
+      (querySnapshot) => {
+        const data = [];
         querySnapshot.forEach((doc) => {
+          console.log(doc.data());
           data.push(doc.data());
         });
-      })
-      .then(() => {
+
         setPost(data);
         setLoad(false);
-      });
+      }
+    );
   };
+
   useEffect(() => {
-    getNewPost();
+    getAllPostBycollectionGroup();
   }, []);
+
   return (
     <>
-      <>
+      <MDBRow className="me-3 ms-3">
         {load
           ? spinner
           : post.map((item) => (
-              <MDBCard className="m-2 border border-info " alignment="center">
-                <MDBCardHeader></MDBCardHeader>
-                <MDBCardBody>
-                  <MDBCardTitle>{JSON.stringify(item.title)}</MDBCardTitle>
-                  <MDBCardText>
-                    {JSON.parse(JSON.stringify(item.content))}
-                  </MDBCardText>
-                  <MDBBtn>Detail ...</MDBBtn>
-                </MDBCardBody>
-                <MDBCardFooter className="text-muted">
-                  {JSON.stringify(item.updatedDate)}
-                </MDBCardFooter>
-              </MDBCard>
+              <MDBCol md="12" lg="4" className="">
+                <MDBCard
+                  className="m-2 border border-secondary "
+                  alignment="center"
+                >
+                  <MDBCardHeader></MDBCardHeader>
+                  <MDBCardBody>
+                    <MDBCardTitle>{JSON.stringify(item.title)}</MDBCardTitle>
+                    <MDBCardText>
+                      {JSON.parse(JSON.stringify(item.content))}
+                    </MDBCardText>
+                    <MDBBtn>Detail ...</MDBBtn>
+                  </MDBCardBody>
+                  <Moment fromNow>{item.updatedDate.toDate()}</Moment>
+                  <MDBCardFooter className="text-muted"></MDBCardFooter>
+                  <MDBCardFooter className="text-muted"></MDBCardFooter>
+                </MDBCard>
+              </MDBCol>
             ))}
         <h1></h1>{" "}
-      </>
-      {/* ))} */}
+      </MDBRow>
     </>
   );
 }

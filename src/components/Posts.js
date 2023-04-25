@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import { useCookies } from "react-cookie";
 import {
   MDBTextArea,
   MDBInput,
@@ -12,6 +13,7 @@ import { auth } from "../firebase/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 export default function Posts() {
+  const [cookies, setCookie] = useCookies(["uid-current"]);
   const getCurrentDateTime = () => {
     const today = new Date();
     const date =
@@ -31,22 +33,34 @@ export default function Posts() {
     let record = { [event.target.name]: event.target.value };
     setData({ ...data, ...record });
   };
+
   const navigate = useNavigate();
   const createPost = () => {
     if (data.title === "" || data.content === "")
       toast.error("title and content can't empty");
     else {
       toast.info("create success");
-      addDoc(collection(db, "posts", auth.currentUser.uid, "userPosts"), {
-        title: data.title,
-        content: data.content,
-        createdDate: getCurrentDateTime(),
-        updatedDate: getCurrentDateTime(),
-      }).then(() => {
+      addDoc(
+        collection(
+          db,
+          "posts",
+          auth.currentUser !== null && auth.currentUser.uid !== null
+            ? auth.currentUser.uid
+            : cookies.uid,
+          "userPosts"
+        ),
+        {
+          title: data.title,
+          content: data.content,
+          createdDate: new Date(),
+          updatedDate: new Date(),
+        }
+      ).then(() => {
         navigate("/");
       });
     }
   };
+
   return (
     <MDBContainer>
       <ToastContainer />

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SHA256 } from "crypto-js";
+
 import {
   MDBContainer,
   MDBCol,
@@ -27,6 +29,7 @@ import {
 import { auth, db } from "../firebase/firebaseConfig";
 import { ToastContainer, toast } from "react-toastify";
 import { query, where } from "firebase/firestore";
+import { useCookies } from "react-cookie";
 
 function SignIn() {
   const navigate = useNavigate();
@@ -34,6 +37,11 @@ function SignIn() {
   const providerFB = new FacebookAuthProvider();
   const providerGH = new GithubAuthProvider();
   const [data, setData] = useState({});
+  const [username, setUsername] = useState();
+  const [password, setPassword] = useState();
+  const [cookies, setCookie] = useCookies(["uid-current"]);
+  const [state, setState] = useState(false);
+  // const [user, dispatch] = useContext(MyUserContext);
 
   const SignInWithGoogle = async () => {
     await signInWithPopup(auth, providerGG)
@@ -44,21 +52,20 @@ function SignIn() {
       .then((user) => {
         console.log(user);
         setDoc(doc(db, "users", user.uid), {
-          name: user.displayName,
+          name: user.displayName != null ? user.displayName : "User",
           email: user.email,
           dob: "null",
           photoUrl: user.photoURL,
           createdDate: serverTimestamp(),
           updatedDate: serverTimestamp(),
         });
-        const state = true;
+        setState(true);
         return state;
       })
       .then((state) => {
-        if (state === true) navigate("/");
+        navigate("/");
       })
       .catch((error) => {
-        const errorCode = error.code;
         const errorMessage = error.message;
         alert("errorMessage: ", errorMessage);
       });
@@ -66,11 +73,17 @@ function SignIn() {
 
   const SignInWithAuthEmail = async () => {
     console.log(data);
-    signInWithEmailAndPassword(auth, data.email, data.password)
+    signInWithEmailAndPassword(auth, username, password)
       .then((userCredential) => {
         const user = userCredential.user;
         console.log(userCredential);
         toast.success("Sign In Success");
+      })
+      .then(() => {
+        setState(true);
+      })
+      .then((state) => {
+        if (state === true) navigate("/");
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -85,24 +98,39 @@ function SignIn() {
     setData({ ...data, ...record });
   };
 
-  const SignInWithNormal = async (username, password) => {
+  const SignInWithNormal = async () => {
     const q = query(
       collection(db, "users"),
       where("username", "==", username),
-      where("password", "==", password)
+      where("password", "==", SHA256(password).toString())
     );
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.size > 0) {
-    }
+    await getDocs(q).then((querySnapshot) => {
+      if (querySnapshot.docs.length > 0) {
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, " => ", doc.data());
+          setCookie("uid", doc.id);
+
+          setState(true);
+          navigate("/");
+        });
+      } else alert("User không tồn tại");
+    });
   };
 
   const SignInWithFacebook = async () => {
     await signInWithPopup(auth, providerFB)
       .then((result) => {
         const user = result.user;
+        return user;
+      })
+      .then((user) => {
+        const state = true;
+        return state;
+      })
+      .then((state) => {
+        if (state === true) navigate("/");
       })
       .catch((error) => {
-        const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorMessage);
       });
@@ -112,14 +140,32 @@ function SignIn() {
     await signInWithPopup(auth, providerGH)
       .then((result) => {
         const user = result.user;
-        console.log(user);
+
+        return user;
+      })
+      .then((user) => {
+        const state = true;
+        return state;
+      })
+      .then((state) => {
+        if (state === true) navigate("/");
       })
       .catch((error) => {
-        const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorMessage);
       });
   };
+
+  const GetUidNormalUser = () => {
+    db.collection("users").where(
+      "username",
+      "==",
+      "JALANDHAR" && "password",
+      "==",
+      "JALANDHAR"
+    );
+  };
+  useEffect(() => {}, [state]);
   return (
     <MDBContainer fluid className="p-3 my-5 h-custom">
       <ToastContainer />
@@ -160,13 +206,6 @@ function SignIn() {
             >
               <MDBIcon fab icon="github" />
             </MDBBtn>
-            <MDBBtn
-              className="m-1"
-              style={{ backgroundColor: "#481449" }}
-              href="#"
-            >
-              <MDBIcon fab icon="slack-hash" />
-            </MDBBtn>
           </div>
 
           <div className="divider d-flex align-items-center my-4">
@@ -175,12 +214,13 @@ function SignIn() {
 
           <MDBInput
             wrapperClass="mb-4"
-            label="Email address"
-            id="email"
-            type="email"
+            label="Enter username"
+            id="username"
+            type="text"
             size="lg"
             name="email"
-            onChange={(event) => handleInput(event)}
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
           />
           <MDBInput
             wrapperClass="mb-4"
@@ -189,7 +229,8 @@ function SignIn() {
             type="password"
             size="lg"
             name="password"
-            onChange={(event) => handleInput(event)}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
           />
 
           <div className="d-flex justify-content-between mb-4">
