@@ -1,0 +1,138 @@
+ --- users (collection)
+   |     |
+   |     --- uid (documents)
+   |          |
+   |          --- name: "User Name"
+   |          |
+   |          --- email: "email@email.com"
+   |          |
+   |          --- dob: "19900515"
+   |          |
+   |          --- createdAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |          |
+   |          --- updatedAt: March 24, 2022 at 10:15:00 PM UTC+7
+   |
+	--- emoji (collection)
+   |     |
+   |     --- emojiId (documents)
+   |          |
+   |          --- img: "abc.png"
+   |          |
+   |          --- index: 1
+   |          |
+   |          --- title: "Like" 
+   |          |
+   |          --- createdAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |          |
+   |          --- updatedAt: March 24, 2022 at 10:15:00 PM UTC+7
+   |
+   --- reaction (collection)
+   |     |
+   |     --- uid (documents)
+   |           |
+   |           --- emojiPost (collection)
+   |                 |
+   |                 ---postId (documents)
+   | 				  	   |
+   |                 |     --- emojiRef: "emoji/wgm5PO0R2rjLmYHmAVqj"
+   |                 |     |
+   |                 |     --- createdAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |     |
+   |                 |     --- updatedAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |
+   |                 ---postId (documents)
+   | 				  	   |
+   |                 |     --- emojiRef: "emoji/wgm5PO0R2rjLmYHmAVqj"
+   |                 |     |
+   |                 |     --- createdAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |     |
+   |                 |     --- updatedAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |     |
+   |           |
+   |           --- emojiComment (collection)
+   |                 |
+   |                 ---commentId (documents)
+   | 				  	   |
+   |                 |     --- emojiRef: "emoji/wgm5PO0R2rjLmYHmAVqj"
+   |                 |     |
+   |                 |     --- createdAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |     |
+   |                 |     --- updatedAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |
+   |                 ---commentId (documents)
+   | 				  	   |
+   |                 |     --- emojiRef: "emoji/wgm5PO0R2rjLmYHmAVqj"
+   |                 |     |
+   |                 |     --- createdAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |     |
+   |                 |     --- updatedAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |     |
+   |
+   --- following (collection)
+   |      |
+   |      --- uid (document)
+   |           |
+   |           --- userFollowing (collection)
+   |                 |
+   |                 --- uid (documents)
+   |                 |
+   |                 --- uid (documents)
+   | 
+   --- blocking (collection)
+   |      |
+   |      --- uid (document)
+   |           |
+   |           --- userBlocking (collection)
+   |                 |
+   |                 --- uid (documents)
+   |                 |
+   |                 --- uid (documents)
+   |
+   --- posts (collection)
+   |      |
+   |      --- uid (documents)
+   |           |
+   |           --- userPosts (collection)
+   |                 |
+   |                 --- postId (documents)
+   |                 |     |
+   |                 |     --- title: "Post Title"
+   |                 |     |
+   |                 |     --- content: "post content"
+   |                 |     |
+   |                 |     --- createdAt: March 24, 2022 at 9:00:00 PM UTC+7
+   |                 |     |
+   |                 |     --- updatedAt: March 24, 2022 at 10:15:00 PM UTC+7
+   |                 |
+   |                 --- postId (documents)
+   |                       |
+   |                       --- title: "Second Post Title"
+   |                       |
+   |                       --- content: "second post content"
+   |                       |
+   |                       --- createdAt: September 03, 2018 at 6:16:58 PM UTC+7
+   |                       |
+   |                       --- updatedAt: September 03, 2018 at 6:16:58 PM UTC+7
+   |        
+   ---comments (collection)
+          |
+          ---postId (documents)
+            |
+            --postComments (collection)
+            |      |
+            |     --commentId (documents)
+            |     |     |
+            |     |     --userRef : "users/wgm5PO0R2rjLmYHmAVqj"
+            |     |     |
+            |     |     --content: "first comment of user 2"
+            |     |     |
+            |     |     -- createdAt: September 12, 2013 at 6:16:58 PM UTC+7
+            |     |
+            |     |--commentId (documents)
+            |           |
+            |           --userRef : "user/JZlP4lYxRfas7yymAmpP"
+            |           |
+            |            --content: "second comment of user 2"
+            |           |
+            |           -- createdAt: September 12, 2013 at 6:16:58 PM UTC+7
+				x

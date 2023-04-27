@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase/firebaseConfig";
+import { db } from "../firebase/firebaseConfig";
 import Moment from "react-moment";
 import {
-  getDocs,
   collection,
   query,
   collectionGroup,
@@ -10,7 +9,6 @@ import {
   orderBy,
 } from "firebase/firestore";
 import {
-  MDBContainer,
   MDBRow,
   MDBCol,
   MDBBtn,
@@ -22,16 +20,15 @@ import {
   MDBCardText,
   MDBSpinner,
 } from "mdb-react-ui-kit";
+
 export default function Home() {
   const [post, setPost] = useState([]);
   const [load, setLoad] = useState(false);
 
   let spinner = (
-    <MDBContainer>
-      <MDBSpinner role="status">
-        <span className="visually-hidden">Loading...</span>
-      </MDBSpinner>
-    </MDBContainer>
+    <MDBSpinner role="status">
+      <span className="visually-hidden">Loading...</span>
+    </MDBSpinner>
   );
 
   const postsRefAll = collection(db, "posts");
@@ -45,7 +42,6 @@ export default function Home() {
       (querySnapshot) => {
         const data = [];
         querySnapshot.forEach((doc) => {
-          console.log(doc.data());
           data.push(doc.data());
         });
 

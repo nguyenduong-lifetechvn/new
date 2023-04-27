@@ -10,7 +10,13 @@ import {
   MDBCheckbox,
 } from "mdb-react-ui-kit";
 import { Link } from "react-router-dom";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  setDoc,
+  doc,
+} from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { db, auth } from "../firebase/firebaseConfig";
 import { ToastContainer, toast } from "react-toastify";
@@ -72,10 +78,24 @@ function SignUp() {
           const user = userCredential.user;
           console.log(user);
           toast.success("Create Successfull");
-          navigate("/login");
+          return user;
+        })
+        .then((user) => {
+          console.log(user);
+          setDoc(doc(db, "users", user.uid), {
+            name: data.fullname,
+            email: user.email,
+            username: data.username,
+            password: SHA256(data.password).toString(),
+            dob: data.dob,
+            createdDate: new Date(),
+            updatedDate: new Date(),
+            uid: user.uid,
+            photoUrl: "https://mdbootstrap.com/img/new/avatars/7.jpg",
+          });
+          setTimeout(navigate("/login"), 2000);
         })
         .catch((error) => {
-          const errorCode = error.code;
           const errorMessage = error.message;
           toast.error(errorMessage);
         });

@@ -41,7 +41,6 @@ function SignIn() {
   const [password, setPassword] = useState();
   const [cookies, setCookie] = useCookies(["uid-current"]);
   const [state, setState] = useState(false);
-  // const [user, dispatch] = useContext(MyUserContext);
 
   const SignInWithGoogle = async () => {
     await signInWithPopup(auth, providerGG)
@@ -56,8 +55,9 @@ function SignIn() {
           email: user.email,
           dob: "null",
           photoUrl: user.photoURL,
-          createdDate: serverTimestamp(),
-          updatedDate: serverTimestamp(),
+          createdDate: new Date(),
+          updatedDate: new Date(),
+          uid: user.uid,
         });
         setState(true);
         return state;

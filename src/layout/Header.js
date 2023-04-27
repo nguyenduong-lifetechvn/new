@@ -29,7 +29,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [cookies, setCookie, removeCookie] = useCookies(["uid-current"]);
 
-  const [q, setQ] = useState();
+  const [q, setQ] = useState("");
   let userInfor = (
     <>
       <MDBNavbarItem>
@@ -59,6 +59,7 @@ export default function Header() {
     if (docSnap.exists()) {
       console.log("Document data:", docSnap.data());
       setCurrentUser(docSnap.data());
+      console.log(currentUser);
     } else {
       console.log("No such document!");
     }
@@ -92,15 +93,9 @@ export default function Header() {
 
   const SearchUser = async (e) => {
     e.preventDefault();
-    const users = [];
-    const useRef = collection(db, "users");
-    const docSnap = await getDocs(useRef);
-    docSnap.forEach((user) => {
-      users.push(user.data());
-    });
-
-    console.log(users);
+    navigate(`/follow?q=${q}`);
   };
+
   useEffect(() => {
     CheckStateUser();
     getUserByUidFromCookie();
@@ -126,7 +121,7 @@ export default function Header() {
                 rounded
                 color="#778899"
               >
-                Chào {currentUser.displayName}
+                Chào {currentUser.name}
               </MDBDropdownToggle>
             </MDBNavbarLink>
             <MDBDropdownMenu>
@@ -148,20 +143,6 @@ export default function Header() {
         </MDBNavbarItem>
       </>
     );
-
-  let dropList = (
-    <>
-      <MDBDropdown>
-        <MDBDropdownMenu alwaysOpen>
-          <MDBDropdownItem link>Regular link</MDBDropdownItem>
-          <MDBDropdownItem link aria-current={true} className="active">
-            Active link
-          </MDBDropdownItem>
-          <MDBDropdownItem link>Another link</MDBDropdownItem>
-        </MDBDropdownMenu>
-      </MDBDropdown>
-    </>
-  );
 
   return (
     <MDBNavbar
@@ -195,12 +176,27 @@ export default function Header() {
                 </Link>
               </MDBNavbarLink>
             </MDBNavbarItem>
+            <MDBNavbarItem>
+              <MDBNavbarLink active aria-current="page">
+                <Link
+                  style={{ color: "white" }}
+                  className="nav-link"
+                  to={"/follow"}
+                >
+                  Follower
+                </Link>
+              </MDBNavbarLink>
+            </MDBNavbarItem>
 
             {userInfor}
             <DropList />
           </MDBNavbarNav>
 
-          <form style={{ width: "500px" }} className="d-flex input-group ">
+          <form
+            onSubmit={SearchUser}
+            style={{ width: "500px" }}
+            className="d-flex input-group "
+          >
             <input
               style={{ color: "black", borderRadius: "5px" }}
               type="search"
@@ -216,7 +212,7 @@ export default function Header() {
               className="mx-2"
               color="tertiary"
               rippleColor="light"
-              onClick={SearchUser}
+              type="submit"
             >
               Search
             </MDBBtn>

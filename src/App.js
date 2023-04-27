@@ -10,6 +10,7 @@ import UserInfor from "./components/UserInfor";
 import Footer from "./layout/Footer";
 import { useCookies } from "react-cookie";
 import "moment/locale/vi";
+import Follow from "./components/Follow";
 
 function App() {
   const [cookies, setCookie] = useCookies(["name"]);
@@ -24,6 +25,7 @@ function App() {
         <Route path="/register" element={<SignUp />} />
         <Route path="/post" element={<Posts />} />
         <Route path="/user" element={<UserInfor />} />
+        <Route path="/follow" element={<Follow />} />
       </Routes>
       <Footer />
     </BrowserRouter>
