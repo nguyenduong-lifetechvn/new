@@ -12,13 +12,7 @@ import {
   MDBCheckbox,
 } from "mdb-react-ui-kit";
 import { Link } from "react-router-dom";
-import {
-  doc,
-  setDoc,
-  getDocs,
-  serverTimestamp,
-  collection,
-} from "firebase/firestore";
+import { doc, setDoc, getDocs, collection } from "firebase/firestore";
 import {
   GithubAuthProvider,
   signInWithPopup,
@@ -49,7 +43,6 @@ function SignIn() {
         return user;
       })
       .then((user) => {
-        console.log(user);
         setDoc(doc(db, "users", user.uid), {
           name: user.displayName != null ? user.displayName : "User",
           email: user.email,
@@ -76,8 +69,10 @@ function SignIn() {
     signInWithEmailAndPassword(auth, username, password)
       .then((userCredential) => {
         const user = userCredential.user;
-        console.log(userCredential);
         toast.success("Sign In Success");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       })
       .then(() => {
         setState(true);
@@ -107,7 +102,6 @@ function SignIn() {
     await getDocs(q).then((querySnapshot) => {
       if (querySnapshot.docs.length > 0) {
         querySnapshot.forEach((doc) => {
-          console.log(doc.id, " => ", doc.data());
           setCookie("uid", doc.id);
 
           setState(true);
@@ -132,7 +126,7 @@ function SignIn() {
       })
       .catch((error) => {
         const errorMessage = error.message;
-        console.log(errorMessage);
+        alert(errorMessage);
       });
   };
 
@@ -152,7 +146,7 @@ function SignIn() {
       })
       .catch((error) => {
         const errorMessage = error.message;
-        console.log(errorMessage);
+        alert(errorMessage);
       });
   };
 

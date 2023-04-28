@@ -15,10 +15,10 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  addDoc,
   setDoc,
   getDoc,
   where,
+  onSnapshot,
 } from "firebase/firestore";
 import { auth, db } from "../firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
@@ -31,6 +31,7 @@ export default function Follow() {
   const [userSearch, setUserSearch] = useState(null);
   const [currentUser, setCurrentUser] = useState();
   const [loading, setLoading] = useState(false);
+  const [listFollower, setListFollower] = useState([]);
 
   let spinner = (
     <MDBSpinner role="status">
@@ -38,13 +39,12 @@ export default function Follow() {
     </MDBSpinner>
   );
   let k = q.get("q");
-
+  const data = [];
   const getAnotherUser = async () => {
     setLoad(true);
     const q = collection(db, "users");
     await getDocs(q)
       .then((querySnapshot) => {
-        const data = [];
         querySnapshot.forEach((doc) => {
           data.push(doc.data());
         });
@@ -54,9 +54,9 @@ export default function Follow() {
         for (const i of data) {
           setUsers(...users, i);
         }
-        console.log(data);
+
         setUsers(data);
-        console.log(users);
+        setTimeout(() => console.log(users), 2000);
         setLoad(false);
       });
   };
@@ -79,6 +79,32 @@ export default function Follow() {
       setUserSearch(null);
       setLoading(false);
     }
+  };
+
+  const loadFollower = async () => {
+    console.log("uid current", currentUser.uid);
+    const ref = collection(db, "following", currentUser.uid, "userFollowing");
+    onSnapshot(
+      query(ref),
+
+      (querySnapshot) => {
+        const data = [];
+        querySnapshot.forEach(async (uid) => {
+          const userRef = collection(db, "users", uid);
+          const docUser = await getDoc(userRef);
+          if (docUser.exists()) {
+            data.push(docUser.data());
+          } else {
+            toast.error("No such user!");
+          }
+        });
+
+        setListFollower(data);
+        setTimeout(() => {
+          console.log(listFollower);
+        }, 2000);
+      }
+    );
   };
 
   const CheckStateUser = () => {
@@ -140,133 +166,136 @@ export default function Follow() {
     getAnotherUser();
     CheckStateUser();
     searchUser();
+    loadFollower();
   }, [q]);
 
   return (
-    <MDBTable align="middle">
-      <MDBTableHead>
-        <ToastContainer />
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Title</th>
-          <th scope="col">Status</th>
-          <th scope="col">Position</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </MDBTableHead>
-      <MDBTableBody>
-        <tr>
-          <td>
-            <div className="d-flex align-items-center">
-              <img
-                src="https://mdbootstrap.com/img/new/avatars/8.jpg"
-                alt=""
-                style={{ width: "45px", height: "45px" }}
-                className="rounded-circle"
-              />
-              <div className="ms-3">
-                <p className="fw-bold mb-1">John Doe</p>
-                <p className="text-muted mb-0">john.doe@gmail.com</p>
-              </div>
-            </div>
-          </td>
-          <td>
-            <p className="fw-normal mb-1">Software engineer</p>
-            <p className="text-muted mb-0">IT department</p>
-          </td>
-          <td>
-            <MDBBadge color="success" pill>
-              Active
-            </MDBBadge>
-          </td>
-          <td>Senior</td>
-          <td>
-            <MDBBtn color="link" rounded size="sm">
-              Follow
-            </MDBBtn>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <div className="d-flex align-items-center">
-              <img
-                src="https://mdbootstrap.com/img/new/avatars/6.jpg"
-                alt=""
-                style={{ width: "45px", height: "45px" }}
-                className="rounded-circle"
-              />
-              <div className="ms-3">
-                <p className="fw-bold mb-1">Alex Ray</p>
-                <p className="text-muted mb-0">alex.ray@gmail.com</p>
-              </div>
-            </div>
-          </td>
-          <td>
-            <p className="fw-normal mb-1">Consultant</p>
-            <p className="text-muted mb-0">Finance</p>
-          </td>
-          <td>
-            <MDBBadge color="primary" pill>
-              Onboarding
-            </MDBBadge>
-          </td>
-          <td>Junior</td>
-          <td>
-            <MDBBtn color="link" rounded size="sm">
-              Follow
-            </MDBBtn>
-          </td>
-        </tr>
-        {!loading && userSearch !== null ? (
+    <>
+      <MDBTable align="middle">
+        <MDBTableHead>
+          <ToastContainer />
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Title</th>
+            <th scope="col">Status</th>
+            <th scope="col">Position</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </MDBTableHead>
+        <MDBTableBody>
           <tr>
             <td>
               <div className="d-flex align-items-center">
                 <img
-                  src={userSearch.photoUrl}
+                  src="https://mdbootstrap.com/img/new/avatars/8.jpg"
                   alt=""
                   style={{ width: "45px", height: "45px" }}
                   className="rounded-circle"
                 />
                 <div className="ms-3">
-                  <p className="fw-bold mb-1">{userSearch.name}</p>
-                  <p className="text-muted mb-0">{userSearch.email}</p>
+                  <p className="fw-bold mb-1">John Doe</p>
+                  <p className="text-muted mb-0">john.doe@gmail.com</p>
                 </div>
               </div>
             </td>
             <td>
-              <p className="fw-normal mb-1">Designer</p>
-              <p className="text-muted mb-0">UI/UX</p>
+              <p className="fw-normal mb-1">Software engineer</p>
+              <p className="text-muted mb-0">IT department</p>
             </td>
             <td>
-              <MDBBadge color="warning" pill>
-                Awaiting
+              <MDBBadge color="success" pill>
+                Active
               </MDBBadge>
             </td>
             <td>Senior</td>
             <td>
-              {isFollow ? (
-                <MDBBtn
-                  onClick={handleClickUnFollow}
-                  color="link"
-                  rounded
-                  size="sm"
-                >
-                  UnFollow
-                </MDBBtn>
-              ) : (
-                <MDBBtn
-                  onClick={handleClickFollow}
-                  color="link"
-                  rounded
-                  size="sm"
-                >
-                  Follow
-                </MDBBtn>
-              )}
+              <MDBBtn color="link" rounded size="sm">
+                Follow
+              </MDBBtn>
             </td>
           </tr>
-        ) : null}
-      </MDBTableBody>
-    </MDBTable>
+          <tr>
+            <td>
+              <div className="d-flex align-items-center">
+                <img
+                  src="https://mdbootstrap.com/img/new/avatars/6.jpg"
+                  alt=""
+                  style={{ width: "45px", height: "45px" }}
+                  className="rounded-circle"
+                />
+                <div className="ms-3">
+                  <p className="fw-bold mb-1">Alex Ray</p>
+                  <p className="text-muted mb-0">alex.ray@gmail.com</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <p className="fw-normal mb-1">Consultant</p>
+              <p className="text-muted mb-0">Finance</p>
+            </td>
+            <td>
+              <MDBBadge color="primary" pill>
+                Onboarding
+              </MDBBadge>
+            </td>
+            <td>Junior</td>
+            <td>
+              <MDBBtn color="link" rounded size="sm">
+                Follow
+              </MDBBtn>
+            </td>
+          </tr>
+          {!loading && userSearch !== null ? (
+            <tr>
+              <td>
+                <div className="d-flex align-items-center">
+                  <img
+                    src={userSearch.photoUrl}
+                    alt=""
+                    style={{ width: "45px", height: "45px" }}
+                    className="rounded-circle"
+                  />
+                  <div className="ms-3">
+                    <p className="fw-bold mb-1">{userSearch.name}</p>
+                    <p className="text-muted mb-0">{userSearch.email}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <p className="fw-normal mb-1">Designer</p>
+                <p className="text-muted mb-0">UI/UX</p>
+              </td>
+              <td>
+                <MDBBadge color="warning" pill>
+                  Awaiting
+                </MDBBadge>
+              </td>
+              <td>Senior</td>
+              <td>
+                {isFollow ? (
+                  <MDBBtn
+                    onClick={handleClickUnFollow}
+                    color="link"
+                    rounded
+                    size="sm"
+                  >
+                    UnFollow
+                  </MDBBtn>
+                ) : (
+                  <MDBBtn
+                    onClick={handleClickFollow}
+                    color="link"
+                    rounded
+                    size="sm"
+                  >
+                    Follow
+                  </MDBBtn>
+                )}
+              </td>
+            </tr>
+          ) : null}
+        </MDBTableBody>
+      </MDBTable>
+    </>
   );
 }

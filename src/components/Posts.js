@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { useCookies } from "react-cookie";
@@ -10,23 +10,12 @@ import {
   MDBContainer,
 } from "mdb-react-ui-kit";
 import { auth } from "../firebase/firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { doc, collection, addDoc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 export default function Posts() {
   const [cookies, setCookie] = useCookies(["uid-current"]);
-  const getCurrentDateTime = () => {
-    const today = new Date();
-    const date =
-      today.toLocaleString("default", { month: "long" }) +
-      "-" +
-      today.getDate() +
-      "-" +
-      today.getFullYear();
-    const time =
-      today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    const dateTime = date + " " + time;
-    return dateTime;
-  };
+  const [currentUser, setCurrentUser] = useState(null);
 
   const [data, setData] = useState({});
   const handleInput = (event) => {
@@ -35,6 +24,23 @@ export default function Posts() {
   };
 
   const navigate = useNavigate();
+
+  const CheckStateUser = async () => {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          await setCurrentUser(docSnap.data());
+        } else {
+          toast.error("user don't exist");
+        }
+      } else {
+        setCurrentUser(null);
+      }
+    });
+  };
   const createPost = () => {
     if (data.title === "" || data.content === "")
       toast.error("title and content can't empty");
@@ -54,13 +60,34 @@ export default function Posts() {
           content: data.content,
           createdDate: new Date(),
           updatedDate: new Date(),
+          subPost: data.content.substring(0, 400),
+          userId: auth.currentUser.uid,
+          nameAuthor: currentUser.name,
         }
-      ).then(() => {
-        navigate("/");
+      ).then(async (a) => {
+        const docRef = doc(
+          db,
+          "posts",
+          auth.currentUser !== null && auth.currentUser.uid !== null
+            ? auth.currentUser.uid
+            : cookies.uid,
+          "userPosts",
+          a.id
+        );
+        await updateDoc(docRef, {
+          postId: a.id,
+        });
+
+        console.log(a.id);
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       });
     }
   };
-
+  useEffect(() => {
+    CheckStateUser();
+  }, []);
   return (
     <MDBContainer>
       <ToastContainer />

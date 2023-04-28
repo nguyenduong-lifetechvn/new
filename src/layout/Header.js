@@ -21,6 +21,7 @@ import { db, auth } from "../firebase/firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useCookies } from "react-cookie";
 import DropList from "../components/DropList";
+import { toast } from "react-toastify";
 
 export default function Header() {
   const [showBasic, setShowBasic] = useState(false);
@@ -64,11 +65,18 @@ export default function Header() {
       console.log("No such document!");
     }
   };
-  const CheckStateUser = () => {
-    onAuthStateChanged(auth, (user) => {
+  const CheckStateUser = async () => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log(user);
-        setCurrentUser(user);
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          console.log("Document data:", docSnap.data());
+          await setCurrentUser(docSnap.data());
+        } else {
+          toast.error("user don't exist");
+        }
       } else {
         setCurrentUser(null);
       }

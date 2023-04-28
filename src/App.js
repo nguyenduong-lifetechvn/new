@@ -11,6 +11,8 @@ import Footer from "./layout/Footer";
 import { useCookies } from "react-cookie";
 import "moment/locale/vi";
 import Follow from "./components/Follow";
+import PostDetails from "./components/PostDetails";
+import Feed from "./components/Feed";
 
 function App() {
   const [cookies, setCookie] = useCookies(["name"]);
@@ -26,6 +28,8 @@ function App() {
         <Route path="/post" element={<Posts />} />
         <Route path="/user" element={<UserInfor />} />
         <Route path="/follow" element={<Follow />} />
+        <Route path="/post-detail/:postId" element={<Feed />} />
+        <Route path="/feed" element={<Feed />} />
       </Routes>
       <Footer />
     </BrowserRouter>
